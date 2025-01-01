@@ -25,66 +25,66 @@
 matmul:
     ebreak
     # Error checks
-    li t0, 1
-    blt a1, t0, exception
-    blt a2, t0, exception
-    blt a4, t0, exception
-    blt a5, t0, exception
-    bne a1, a5, exception
+    ble a1, x0, exception
+    ble a2, x0, exception
+    ble a4, x0, exception
+    ble a5, x0, exception
+    bne a2, a4, exception
 
     # Prologue
-    addi sp, sp, -4
-    sw ra, 0(sp)
+    addi sp, sp, -32
+    sw s0, 0(sp)
+    sw s1, 4(sp)
+    sw s2, 8(sp)
+    sw s3, 12(sp)
+    sw s4, 16(sp)
+    sw s5, 20(sp)
+    sw s6, 24(sp)
+    sw ra, 28(sp)
+    mv s0, a0
+    mv s1, a1
+    mv s2, a2
+    mv s3, a3
+    mv s4, a4
+    mv s5, a5
+    mv s6, a6
 
     # Set loop parameter
     mv t0, x0
-    mv t1, x0
+    
     
 outer_loop_start:
-    bge t0, a1, outer_loop_end
-
+    bge t0, s1, outer_loop_end
+    mv t1, x0
 
 
 inner_loop_start:
-    bge t1, a5, inner_loop_end
-
-    # Prologue
-    addi sp, sp, -28
-    sw a0, 0(sp)
-    sw a1, 4(sp)
-    sw a2, 8(sp)
-    sw a3, 12(sp)
-    sw a4, 16(sp)
-    sw t0, 20(sp)
-    sw t1, 24(sp)
+    bge t1, s5, inner_loop_end
+    # set parameter of dot
+    mv a0, s0 # a0 (int*) is the pointer to the start of arr0
+    slli t2, t1, 2 # calculate the off amount
+    add a1, s3, t2 # a1 (int*) is the pointer to the start of arr1
     
-    # set argument
-    mv a1, a3
-    li a3, 1
-    mv a4, a5
+    mv a2, s2 # a2 (int)  is the number of elements to use
+    li a3, 1 # a3 (int)  is the stride of arr0
+    mv a4, s5 # a4 (int)  is the stride of arr1
+    # prologue
+	addi sp, sp, -8
+    sw t0, 0(sp)
+    sw t1, 4(sp)
+    
     # call dot
     jal dot
     
-    # set dot result to t2
-    mv t2, a0
+    # set dot result to a6
+    sw a0, 0(s6)
+    addi s6, s6, 4
     
     # Epilogue
-    lw a0, 0(sp)
-    lw a1, 4(sp)
-    lw a2, 8(sp)
-    lw a3, 12(sp)
-    lw a4, 16(sp)
-    lw t0, 20(sp)
-    lw t1, 24(sp)
-    addi sp, sp, 28
+    lw t0, 0(sp)
+    lw t1, 4(sp)
+	addi sp, sp, 8
     
-    # store t2 to a6
-    mv t3, t0
-    addi t3, t3, 1
-    mul t4, t3, t1
-    slli t4, t4, 2
-    add t4, t4, a6
-    sw t2, 0(t4)
 
 
     addi t1, t1, 1
@@ -93,14 +93,22 @@ inner_loop_start:
 inner_loop_end:
     
     addi t0, t0, 1
+    slli t2, s2, 2
+    add s0, s0, t2
     j outer_loop_start
 
 outer_loop_end:
 
-
     # Epilogue
-    lw ra, 0(sp)
-    addi sp, sp, 4
+    lw s0, 0(sp)
+    lw s1, 4(sp)
+    lw s2, 8(sp)
+    lw s3, 12(sp)
+    lw s4, 16(sp)
+    lw s5, 20(sp)
+    lw s6, 24(sp)
+    lw ra, 28(sp)
+    addi sp, sp, 32
 
     jr ra
 exception:
