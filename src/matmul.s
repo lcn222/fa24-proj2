@@ -23,7 +23,6 @@
 #     this function terminates the program with exit code 38
 # =======================================================
 matmul:
-    ebreak
     # Error checks
     ble a1, x0, exception
     ble a2, x0, exception
